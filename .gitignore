@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+data/
+sen2r_data/
+sen2r_output/
+snap_output/
