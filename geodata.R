@@ -10,4 +10,4 @@ GDALinfo("sen2r_output/NDVI/S2B2A_20200801_022_sen2r_NDVI_10.tif")
 # TODO:
 # Wolken in sen2r -> NA
 # Wasser -> NA
-# Bereich aus dem tif für einen Stadtteil selektiren und Durschnittlichen NDVI darüber berechnen
+# Bereich aus dem tif für einen Stadtteil selektieren und Durschnittlichen NDVI darüber berechnen
