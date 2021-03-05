@@ -17,7 +17,8 @@ plot(tif)
 # Bereich aus dem tif für einen Stadtteil selektieren und Durschnittlichen NDVI darüber berechnen
 
 mean_values <- extract(tif, shp, fun = mean)
-output = data.frame(mean_values)
+output <- data.frame(mean_values)
+output <- cbind(output, shp$Name)
 print(output)
 
 # masked <- mask(tif, shp)
