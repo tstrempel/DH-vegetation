@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 
-data/
+snap_data/
 sen2r_data/
 sen2r_output/
 snap_output/
