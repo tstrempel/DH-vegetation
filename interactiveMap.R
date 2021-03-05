@@ -2,8 +2,8 @@
 library(ggplot2) #visualization
 library(leaflet) #interactive map
 library(rgdal) #reading shape-files
-library(shiny)
-library(data.table) 
+library(shiny) #create web application for hosting map
+library(data.table) #for table data manipulation
 
 
 #read in NDVI data, add to data table
