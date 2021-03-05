@@ -5,9 +5,10 @@ library(rasterVis)
 
 sen2r("sen2r_parameters/test3.json")
 
-shp <- shapefile("shapefiles/Leipzig_Stadtbezirke_UTM33N/sbz.shp")
+shp_stadtbezirke <- shapefile("data/Leipzig_Stadtbezirke_UTM33N/sbz.shp")
+shp_ortsteile <- shapefile("data/Leipzig_Ortsteile_UTM33N/ot.shp")
 
-GDALinfo("sen2r_output/NDVI/S2B2A_20200806_022_sen2r_NDVI_10.tif")
+GDALinfo("data/S2B2A_20200806_022_sen2r_NDVI_10.tif")
 tif <- raster("sen2r_output/NDVI/S2B2A_20200806_022_sen2r_NDVI_10.tif")
 plot(tif)
 
