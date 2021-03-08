@@ -14,21 +14,21 @@ shp_sbz <- shapefile("data/Leipzig_Stadtbezirke_UTM33N/sbz.shp")
 shp_ot <- shapefile("data/Leipzig_Ortsteile_UTM33N/ot.shp")
 
 mean_sbz_ndvi <- raster::extract(tif_ndvi, shp_sbz, fun = mean) %>% data.frame() %>% cbind(shp_sbz$Name)
-colnames(mean_sbz_ndvi) <- c("NDVI", "SBZ")
+colnames(mean_sbz_ndvi) <- c("NDVI", "Name")
 
 mean_sbz_evi <- raster::extract(tif_evi, shp_sbz, fun = mean) %>% data.frame() %>% cbind(name = shp_sbz$Name)
-colnames(mean_sbz_evi) <- c("EVI", "SBZ")
+colnames(mean_sbz_evi) <- c("EVI", "Name")
 
 mean_ot_ndvi <- raster::extract(tif_ndvi, shp_ot, fun = mean) %>% data.frame() %>% cbind(name = shp_ot$Name)
-colnames(mean_ot_ndvi) <- c("NDVI", "OT")
+colnames(mean_ot_ndvi) <- c("NDVI", "Name")
 
 mean_ot_evi <- raster::extract(tif_evi, shp_ot, fun = mean) %>% data.frame() %>% cbind(name = shp_ot$Name)
-colnames(mean_ot_evi) <- c("EVI", "OT")
+colnames(mean_ot_evi) <- c("EVI", "Name")
 
-write.csv(mean_sbz_ndvi, "data/mean_sbz_ndvi.csv", row.names = FALSE)
-write.csv(mean_sbz_evi, "data/mean_sbz_evi.csv", row.names = FALSE)
-write.csv(mean_ot_ndvi, "data/mean_ot_ndvi.csv", row.names = FALSE)
-write.csv(mean_ot_ndvi, "data/mean_ot_evi.csv", row.names = FALSE)
+write.csv(mean_sbz_ndvi, "data/mean_sbz_ndvi.csv", row.names = TRUE)
+write.csv(mean_sbz_evi, "data/mean_sbz_evi.csv", row.names = TRUE)
+write.csv(mean_ot_ndvi, "data/mean_ot_ndvi.csv", row.names = TRUE)
+write.csv(mean_ot_ndvi, "data/mean_ot_evi.csv", row.names = TRUE)
 
 # TODO:
 # Wolken in sen2r -> NA
