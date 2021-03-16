@@ -1,15 +1,25 @@
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+rgdal_show_exportToProj4_warnings = "none"
+#update.packages(checkBuilt = TRUE)
+
 #libraries:
 library(leaflet) #interactive map
 library(leaflet.extras) #additional options for interactive map
-rgdal_show_exportToProj4_warnings = "none"
+
 library(rgdal) #for spatial data
 library(shiny) #web application for hosting
 library(data.table) 
 library(htmltools)
 library(RColorBrewer) #for color palette (shapes)
+library(dplyr)
+library(spatstat)
+library(spatstat.utils)
 library(sampSurf)
+library(magrittr)
+
+
 source("VegetationIndex.R")
-setwd("D:/Programmierzeug/R/Projekte/DH vegetation project")
+tif_ndvi <- raster("data/NDVI.tif")
 
 
 # first read in shapefiles of ortsteile and bezirke; then read in NDVI, EVI and demographical data, add to data set:
@@ -17,6 +27,7 @@ setwd("D:/Programmierzeug/R/Projekte/DH vegetation project")
 #bezirke:
 leipzig_Bezirke <- readOGR(dsn = "./shapefiles/Leipzig_Stadtbezirke_UTM33N", layer = "sbz", use_iconv = TRUE, encoding = "UTF-8") #leipzig_Bezirke is geospatial object
 leipzig_Bezirke <- spTransform(leipzig_Bezirke, CRS("+proj=longlat +datum=WGS84"))
+
 Bezirke_NDVI <- read.csv(file = './data/mean_sbz_ndvi.csv', row.names=NULL, encoding = "UTF-8")
 Bezirke_EVI <- read.csv(file = './data/mean_sbz_evi.csv', row.names=NULL, encoding = "UTF-8")
 Bezirke_NDVI <- merge(leipzig_Bezirke, Bezirke_NDVI )
@@ -44,6 +55,7 @@ labels <- paste("<p>", "Bezirk: ", Bezirksdaten_gesamt$Name,  "</p>",
                 "<p>", "NDVI: ", round(Bezirksdaten_gesamt$NDVI, digits = 3) , "</p>",
                 "<p>", "EVI: ", round(Bezirksdaten_gesamt$EVI, digits = 3) , "</p>",
                 sep= "")
+
 binpal <- colorBin("Greens", Ortsteildaten_gesamt$NDVI, n = 7)
 
 labels2 <- paste("<p>", "Ortsteil: ", Ortsteildaten_gesamt$Name,  "</p>",
@@ -51,7 +63,8 @@ labels2 <- paste("<p>", "Ortsteil: ", Ortsteildaten_gesamt$Name,  "</p>",
                 "<p>", "EVI: ", round(Ortsteildaten_gesamt$EVI, digits = 3) , "</p>",
                 sep= "")
 
-tif_ndvi <- raster("data/NDVI.tif")
+
+
 
 #compute_vegetation_index() #das muss noch in einen action-button --> fehlerprüfung: kreis vorhanden? dann compute ndvi, einfärben, labeln
 
@@ -60,12 +73,13 @@ tif_ndvi <- raster("data/NDVI.tif")
 
 ui <- bootstrapPage(
   #absolutePanel(top = 10, right = 10, fixes = TRUE)
+  title = "Green spaces Leipzig",
   titlePanel("Green spaces Leipzig visualization"),
   leafletOutput("map1", height = 900),
   actionButton("Ortsteile_umschalten", "Ortsteile zeigen"),
-  checkboxInput("legende", "Zeige Farbskala", TRUE)
+  checkboxInput("legende", "Zeige Farbskala", TRUE),
+  checkboxInput("umkreisBox", "NDVI für Wohnumkreis berechnen", FALSE)
 
-  #uiOutput("precinct")
 )
 
 server <- function(input, output, session){
@@ -120,47 +134,80 @@ server <- function(input, output, session){
       hideGroup("Ortsteile")
       
   })  
+  
+
       
       observe({
         proxy <- leafletProxy("map1")
-        
-        # Remove any existing legend, and only if the legend is
-        # enabled, create a new one.
+
         if (input$legende) {
           proxy %>% addLegend(position = "topright", pal = binpal, values = Ortsteildaten_gesamt$NDVI, title = "NDVI Farbskala")
         }else{
           proxy %>% clearControls()
         }
-      })
+     
+      })   
+      
+      
+      
+      observeEvent(input$Ortsteile_umschalten{
+        map1_proxy = leafletProxy("map1") %>%
+          clearGroup('circles')
+      }) 
+      
+      
       
       
       observe({
-        click = input$map1_click
-        if(is.null(click))
-          return()
-        #text<-paste("Latitude: ", click$lat, ", Longtitude: ", click$lng)
-        #text2<-paste("You've selected point ", text)
-        map1_proxy = leafletProxy("map1") %>%
-          clearGroup('circles') %>%
-          #clearMarkers('circles')%>%
-          
-          #statt addCircles: create circle shape (and then add via addPolygons): (funktioniert so nicht)
-          
-          #wohnumkreis = spCircle(radius= 20, centerPoint=c(x=10,y=20), spID='wohnumkreis') #%>%
-          #addPolygons(data = wohnumkreis)
-     
-          addCircles(click$lng, 
-                     click$lat, 
-                     group = 'circles', 
-                     weight=1, 
-                     radius=1000, 
-                     color='black', 
-                     fillColor='orange', #hier die html-funktion für farbe rein
-                     popup='hi',  #ndvi-wert aus der funktion rein
-                     fillOpacity=0.5, 
-                     layerId = 'wohnumkreis',
-                      opacity=1)
+        if(input$umkreisBox){
+            click <- input$map1_click
+            if(is.null(click))
+              return()
+
+             # ClickLong = click$lng
+              #ClickLat = click$lat
+
+              point <- data.frame(ID=1, X = c(click$lng), Y = c(click$lat))
+              coordinates(point) <- c("X", "Y")
+ 
+              proj4string(point) <- CRS("+proj=longlat +datum=WGS84")
+              point <- spTransform(point, CRS("+proj=utm +zone=32 +datum=WGS84 +ellps=WGS84")) %>% data.frame()
+              
+              circle <- spCircle(1000, CRS("+proj=utm +zone=32 +datum=WGS84 +ellps=WGS84"), centerPoint = c(x=point[1,2], y=point[1,3]))
+              print("Berechne NDVI...")
+              circle_ndvi <- compute_vegetation_index(tif_ndvi, circle$spCircle)
+              #hier noch circle_ndvi auf NULL checken
+
+              text<-paste("NDVI für angeklickten Ort mit Radius 1km: " , circle_ndvi)
+
+             #addPolygons(map1, data = wohnumkreis)
+             
+  
+              #clearMarkers('circles')%>%
+              map1_proxy = leafletProxy("map1") %>%
+                
+                
+              
+
+              addCircles(click$lng, 
+                         click$lat, 
+                         group = 'circles', 
+                         weight=1, 
+                         radius=1000, 
+                         color='black', 
+                         fillColor = binpal( circle_ndvi), 
+                         label=text, 
+                         popup = text,
+                         fillOpacity=0.5, 
+                         layerId = NULL,
+                         opacity=1)
+              
+        }else{
+          map1_proxy = leafletProxy("map1") %>%
+            clearGroup('circles')
+        }
       })
+      
       
 
 }
