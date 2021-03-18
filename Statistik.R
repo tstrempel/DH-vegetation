@@ -81,7 +81,5 @@ plot(main = "Einkommen und NDVI (Ortsteile Leipzig)", xlab= "Durchschnittseinkom
      ylab="NDVI", Ortsteildaten$Einkommen, Ortsteildaten$NDVI)
 
 
-plot(main = "Einkommen und EVI (Ortsteile Leipzig)", xlab= "Durchschnittseinkommen in Euro",
-     ylab="EVI", Ortsteildaten$Einkommen, Ortsteildaten$EVI)
-
 #interpretation: would there be a correlation, one would see the NDVI rise along with Einkommen, but it seems to be pretty much randomly distributed
+
