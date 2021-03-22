@@ -10,6 +10,8 @@ compute_vegetation_index <- function(raster_layer, spatial_data) {
   raster_layer[raster_layer >= -0.1 & raster_layer <= 0] <- 0
   # water has high negative values, set them to NA so that they are not used in later calculations
   raster_layer[raster_layer < 0] <- NA
+  # NDVI/EVI can't be higher than 1
+  raster_layer[raster_layer > 1] <- NA
   
   mean <- raster::extract(raster_layer, spatial_data, na.rm = TRUE, fun = mean)
 }

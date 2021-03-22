@@ -5,10 +5,12 @@ library(magrittr)
 library(dplyr)
 library(snow)
 
-dir.create("sen2r_data")
-dir.create("sen2r_output")
 source("vegetationIndex.R")
 
+# create dirs
+dir.create("sen2r_data")
+dir.create("sen2r_output")
+# download all needed data and compute NDVI/EVI(this will take a while)
 sen2r("sen2r_parameters/final.json")
 
 # turn .tif files into raster objects
@@ -22,6 +24,8 @@ tif_evi_files <- lapply(tif_evi_files, raster)
 # read in the city districts 
 shp_sbz <- shapefile("data/Leipzig_Stadtbezirke_UTM33N/sbz.shp")
 shp_ot <- shapefile("data/Leipzig_Ortsteile_UTM33N/ot.shp")
+shp_sbz$Name = c("Mitte", "Nordost", "Ost", "Südost", "Süd", "Südwest", "West", "Alt-West", "Nordwest", "Nord")
+shp_ot$Name = c("Zentrum", "Zentrum-Ost", "Zentrum-Südost", "Zentrum-Süd", "Zentrum-West", "Zentrum-Nordwest", "Zentrum-Nord", "Schönefeld-Abtnaundorf", "Schönefeld-Ost", "Mockau-Süd", "Mockau-Nord", "Thekla", "Plaußig-Portitz", "Neustadt-Neuschönefeld", "Volkmarsdorf", "Anger-Crottendorf", "Sellerhausen-Stünz", "Paunsdorf", "Heiterblick", "Mölkau", "Engelsdorf", "Baalsdorf", "Althen-Kleinpösna", "Reudnitz-Thonberg", "Stötteritz", "Probstheida", "Meusdorf", "Liebertwolkwitz", "Holzhausen", "Südvorstadt", "Connewitz", "Marienbrunn", "Lößnig", "Dölitz-Dösen", "Schleußig", "Plagwitz", "Kleinzschocher", "Großzschocher", "Knautkleeberg-Knauthain", "Hartmannsdorf-Knautnaundorf", "Schönau", "Grünau-Ost", "Grünau-Mitte", "Grünau-Siedlung", "Lausen-Grünau", "Grünau-Nord", "Miltitz", "Lindenau", "Altlindenau", "Neulindenau", "Leutzsch", "Böhlitz-Ehrenberg", "Burghausen-Rückmarsdorf", "Möckern", "Wahren", "Lützschena-Stahmeln", "Lindenthal", "Gohlis-Süd", "Gohlis-Mitte", "Gohlis-Nord", "Eutritzsch", "Seehausen", "Wiederitzsch")
 
 # use 6 cores in parallel cluster to compute means faster
 cl <- makeCluster(6, type = "SOCK")
