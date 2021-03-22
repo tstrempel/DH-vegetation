@@ -16,8 +16,15 @@ leipzig_Bezirke <- spTransform(leipzig_Bezirke, CRS("+proj=longlat +datum=WGS84"
 
 Bezirke_NDVI <- read.csv(file = './data/sbz_ndvi.csv', row.names=NULL, encoding = "UTF-8")
 Bezirke_EVI <- read.csv(file = './data/sbz_evi.csv', row.names=NULL, encoding = "UTF-8")
-Bezirke_NDVI <- merge(leipzig_Bezirke, Bezirke_NDVI )
-Bezirksdaten_gesamt <- merge(Bezirke_NDVI, Bezirke_EVI) #complete data set Bezirksebene
+Bezirke_Einkommen <- read.csv(file = './data/Einkommen_und_Preise_Nettoeinkommen_SBZ.csv', sep=";", dec=",", row.names=NULL, encoding = "UTF-8" )
+
+Bezirksdaten_gesamt <- merge(leipzig_Bezirke, Bezirke_NDVI )
+Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_EVI) 
+Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_Einkommen)#complete data set Bezirksebene
+Bezirksdaten_gesamt <- Bezirksdaten_gesamt[order(-Bezirksdaten_gesamt$Einkommen),]
+Bezirksdaten_gesamt #complete data set Bezirksebene, sortet by income 
+rownames(Bezirksdaten_gesamt) <- NULL
+rownames(Bezirksdaten_gesamt)
 
 
 #ortsteile:
@@ -26,9 +33,13 @@ leipzig_Ortsteile <- spTransform(leipzig_Ortsteile, CRS("+proj=longlat +datum=WG
 
 OT_NDVI <- read.csv(file = './data/ot_ndvi.csv', row.names=NULL, encoding = "UTF-8")
 OT_EVI <- read.csv(file = './data/ot_evi.csv', row.names=NULL, encoding = "UTF-8")
-OT_NDVI <- merge(leipzig_Ortsteile, OT_NDVI )
-Ortsteildaten_gesamt <- merge(OT_NDVI, OT_EVI) #complete data set Ortsteilebene
+OT_Einkommen <- read.csv(file = './data/Einkommen_und_Preise_Nettoeinkommen_OT.csv', sep=";", dec=",", row.names=NULL, encoding = "UTF-8" )
 
+Ortsteildaten_gesamt <- merge(leipzig_Ortsteile, OT_NDVI )
+Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_EVI) 
+Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_Einkommen) #complete data set Ortsteilebene
+Ortsteildaten_gesamt <- Ortsteildaten_gesamt[order(-Ortsteildaten_gesamt$Einkommen),]
+Ortsteildaten_gesamt #complete data set Ortsteilebene, sortet by income 
 
 #using leaflet and shiny to create interactive map
 
@@ -37,6 +48,7 @@ Ortsteildaten_gesamt <- merge(OT_NDVI, OT_EVI) #complete data set Ortsteilebene
 labels <- paste("<p>", "Bezirk: ", Bezirksdaten_gesamt$Name,  "</p>",
                 "<p>", "NDVI: ", round(Bezirksdaten_gesamt$NDVI, digits = 3) , "</p>",
                 "<p>", "EVI: ", round(Bezirksdaten_gesamt$EVI, digits = 3) , "</p>",
+                "<p>", "Einkommen: ", round(Bezirksdaten_gesamt$Einkommen, digits = 3) , " . (Rang )" , as.numeric(rownames(Bezirksdaten_gesamt)) , "</p>",
                 sep= "")
 
 binpal <- colorBin("Greens", Ortsteildaten_gesamt$NDVI, n = 7)
@@ -50,7 +62,7 @@ labels2 <- paste("<p>", "Ortsteil: ", Ortsteildaten_gesamt$Name,  "</p>",
 #and now the shiny application:
 
 ui <- fillPage(
-  leafletOutput("map1", height = "90%"),
+  leafletOutput("map1", height = "95%"),
   
   absolutePanel(top = 2, right = 2,
     sliderInput(
