@@ -5,13 +5,17 @@ library(magrittr)
 library(dplyr)
 library(snow)
 
+dir.create("sen2r_data")
+dir.create("sen2r_output")
 source("vegetationIndex.R")
 
 sen2r("sen2r_parameters/final.json")
 
 # turn .tif files into raster objects
-tif_ndvi_files = list.files(path="sen2r_mean/NDVI/", pattern="*.tif", full.names=TRUE, recursive=FALSE)
-tif_evi_files = list.files(path="sen2r_mean/EVI/", pattern="*.tif", full.names=TRUE, recursive=FALSE)
+# only select pictures with low cloud cover
+tif_ndvi_files = c("sen2r_output/NDVI/S2A2A_20200730_065_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2A2A_20200816_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2A2A_20200908_065_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2A2A_20200915_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2A2A_20200918_065_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2A2A_20200928_065_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2B2A_20200602_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2B2A_20200801_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2B2A_20200811_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2B2A_20200821_022_sen2r_NDVI_10.tif", "sen2r_output/NDVI/S2B2A_20200913_065_sen2r_NDVI_10.tif")
+tif_evi_files = c("sen2r_output/EVI/S2A2A_20200730_065_sen2r_EVI_10.tif", "sen2r_output/EVI/S2A2A_20200816_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2A2A_20200908_065_sen2r_EVI_10.tif", "sen2r_output/EVI/S2A2A_20200915_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2A2A_20200918_065_sen2r_EVI_10.tif", "sen2r_output/EVI/S2A2A_20200928_065_sen2r_EVI_10.tif", "sen2r_output/EVI/S2B2A_20200602_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2B2A_20200801_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2B2A_20200811_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2B2A_20200821_022_sen2r_EVI_10.tif", "sen2r_output/EVI/S2B2A_20200913_065_sen2r_EVI_10.tif")
+
 tif_ndvi_files <- lapply(tif_ndvi_files, raster)
 tif_evi_files <- lapply(tif_evi_files, raster)
 
