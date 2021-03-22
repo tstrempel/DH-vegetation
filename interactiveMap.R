@@ -22,9 +22,10 @@ Bezirksdaten_gesamt <- merge(leipzig_Bezirke, Bezirke_NDVI )
 Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_EVI) 
 Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_Einkommen)#complete data set Bezirksebene
 Bezirksdaten_gesamt <- Bezirksdaten_gesamt[order(-Bezirksdaten_gesamt$Einkommen),]
+Bezirksdaten_gesamt$X <- 1:nrow(Bezirksdaten_gesamt)
 Bezirksdaten_gesamt #complete data set Bezirksebene, sortet by income 
-rownames(Bezirksdaten_gesamt) <- NULL
-rownames(Bezirksdaten_gesamt)
+
+
 
 
 #ortsteile:
@@ -39,6 +40,7 @@ Ortsteildaten_gesamt <- merge(leipzig_Ortsteile, OT_NDVI )
 Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_EVI) 
 Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_Einkommen) #complete data set Ortsteilebene
 Ortsteildaten_gesamt <- Ortsteildaten_gesamt[order(-Ortsteildaten_gesamt$Einkommen),]
+Ortsteildaten_gesamt$X <- 1:nrow(Ortsteildaten_gesamt)
 Ortsteildaten_gesamt #complete data set Ortsteilebene, sortet by income 
 
 #using leaflet and shiny to create interactive map
@@ -48,7 +50,7 @@ Ortsteildaten_gesamt #complete data set Ortsteilebene, sortet by income
 labels <- paste("<p>", "Bezirk: ", Bezirksdaten_gesamt$Name,  "</p>",
                 "<p>", "NDVI: ", round(Bezirksdaten_gesamt$NDVI, digits = 3) , "</p>",
                 "<p>", "EVI: ", round(Bezirksdaten_gesamt$EVI, digits = 3) , "</p>",
-                "<p>", "Einkommen: ", round(Bezirksdaten_gesamt$Einkommen, digits = 3) , " . (Rang )" , as.numeric(rownames(Bezirksdaten_gesamt)) , "</p>",
+                "<p>", "Median income: ", round(Bezirksdaten_gesamt$Einkommen, digits = 2) , " Euro. (Rank " , Bezirksdaten_gesamt$X , " of ", nrow(Bezirksdaten_gesamt) ,")", "</p>",
                 sep= "")
 
 binpal <- colorBin("Greens", Ortsteildaten_gesamt$NDVI, n = 7)
@@ -56,6 +58,8 @@ binpal <- colorBin("Greens", Ortsteildaten_gesamt$NDVI, n = 7)
 labels2 <- paste("<p>", "Ortsteil: ", Ortsteildaten_gesamt$Name,  "</p>",
                 "<p>", "NDVI: ", round(Ortsteildaten_gesamt$NDVI, digits = 3) , "</p>",
                 "<p>", "EVI: ", round(Ortsteildaten_gesamt$EVI, digits = 3) , "</p>",
+                "<p>", "Median income: ", round(Ortsteildaten_gesamt$Einkommen, digits = 2) , " Euro. (Rank " , Ortsteildaten_gesamt$X , " of ", nrow(Ortsteildaten_gesamt) ,")", "</p>",
+                
                 sep= "")
 
 
