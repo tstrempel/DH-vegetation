@@ -35,7 +35,7 @@ ex <- Filter(function(x) is.function(get(x, .GlobalEnv)), ls(.GlobalEnv))
 clusterExport(cl, ex)
 clusterEvalQ(cl, {library(raster)}) 
 
-# export raster objects into the clkuster
+# export raster objects into the cluster
 clusterExport(cl, "tif_ndvi_files")
 clusterExport(cl, "tif_evi_files")
 
