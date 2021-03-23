@@ -52,7 +52,7 @@ mean_ot_ndvi <- data.frame(ID=ot_ndvi[,0], NDVI=rowMeans(ot_ndvi[,-1]), Name=shp
 mean_ot_evi <- data.frame(ID=ot_evi[,0], EVI=rowMeans(ot_evi[,-1]), Name=shp_ot$Name)
 
 # write results into CSVs
-write.csv(mean_sbz_ndvi, "data/sbz_ndvi.csv", row.names = TRUE)
-write.csv(mean_sbz_evi, "data/sbz_evi.csv", row.names = TRUE)
-write.csv(mean_ot_ndvi, "data/ot_ndvi.csv", row.names = TRUE)
-write.csv(mean_ot_evi, "data/ot_evi.csv", row.names = TRUE)
+write.csv(mean_sbz_ndvi, "data/sbz_ndvi.csv", row.names = TRUE, fileEncoding="UTF-8")
+write.csv(mean_sbz_evi, "data/sbz_evi.csv", row.names = TRUE, fileEncoding="UTF-8")
+write.csv(mean_ot_ndvi, "data/ot_ndvi.csv", row.names = TRUE, fileEncoding="UTF-8")
+write.csv(mean_ot_evi, "data/ot_evi.csv", row.names = TRUE, fileEncoding="UTF-8")
