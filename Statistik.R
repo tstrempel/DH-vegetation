@@ -33,15 +33,15 @@ Bezirksdaten <- merge(Bezirksdaten_tmp, Bezirke_EVI) #final data set for Bezirke
 #for n<50 we can use a this test for normality:
 
 round(stat.desc(Bezirksdaten$Einkommen, basic = FALSE, norm = TRUE), digits=3) #normtest.W is the result of the Shapiro-Wilk Test for n<50 -->0.924
-round(stat.desc(Bezirksdaten$NDVI, basic = FALSE, norm = TRUE), digits=3) #normtest.W is the result of the Shapiro-Wilk Test for n<50 -->0.843
-round(stat.desc(Bezirksdaten$EVI, basic = FALSE, norm = TRUE), digits=3) #normtest.W is the result of the Shapiro-Wilk Test for n<50 -->0.886
+round(stat.desc(Bezirksdaten$NDVI, basic = FALSE, norm = TRUE), digits=3) #normtest.W is the result of the Shapiro-Wilk Test for n<50 -->0.894
+round(stat.desc(Bezirksdaten$EVI, basic = FALSE, norm = TRUE), digits=3) #normtest.W is the result of the Shapiro-Wilk Test for n<50 -->0.875
 #W(kr) for n= 10 and a = 0.5 is 0.938 --> conclusion: all three data rows are unlikely to be distributed normally, with Einkommen being the closest to it
 
 
 #for n>50 we have to use this different test for normality:
 shapiro.test(Ortsteildaten$Einkommen) #p = 0.4593
 shapiro.test(Ortsteildaten$NDVI) #p = 0.9591
-shapiro.test(Ortsteildaten$EVI) #p = 2.2e-16
+shapiro.test(Ortsteildaten$EVI) #p = 0.8985
 #here we have to compare the results to p = 0.05; conclusion: normality is likely for the first two three data rows (since they are greater then 0.05)
 
 
@@ -54,7 +54,7 @@ shapiro.test(Ortsteildaten$EVI) #p = 2.2e-16
 NDVI_cor = cor(Ortsteildaten$Einkommen, Ortsteildaten$NDVI) 
 NDVI_cor #result: r = -0.02544751
 EVI_cor = cor(Ortsteildaten$Einkommen, Ortsteildaten$EVI) 
-EVI_cor #result: r = -0.08023683
+EVI_cor #result: r = 0.004668982
 
 #interpretation:
 #generally with r: +/- 0.1 : weak correlation
@@ -79,6 +79,9 @@ det_coeff_OT_NDVI #  result: 0.0006475757
 #simple visualization:
 plot(main = "Einkommen und NDVI (Ortsteile Leipzig)", xlab= "Durchschnittseinkommen in Euro",
      ylab="NDVI", Ortsteildaten$Einkommen, Ortsteildaten$NDVI)
+
+plot(main = "Einkommen und EVI (Ortsteile Leipzig)", xlab= "Durchschnittseinkommen in Euro",
+     ylab="EVI", Ortsteildaten$Einkommen, Ortsteildaten$EVI)
 
 
 #interpretation: would there be a correlation, one would see the NDVI rise along with Einkommen, but it seems to be pretty much randomly distributed
