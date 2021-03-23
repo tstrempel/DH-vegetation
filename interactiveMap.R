@@ -20,7 +20,7 @@ Bezirke_Einkommen <- read.csv(file = './data/Einkommen_und_Preise_Nettoeinkommen
 
 Bezirksdaten_gesamt <- merge(leipzig_Bezirke, Bezirke_NDVI )
 Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_EVI) 
-Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_Einkommen)#complete data set Bezirksebene
+Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_Einkommen)
 Bezirksdaten_gesamt <- Bezirksdaten_gesamt[order(-Bezirksdaten_gesamt$Einkommen),]
 Bezirksdaten_gesamt$X <- 1:nrow(Bezirksdaten_gesamt)
 Bezirksdaten_gesamt #complete data set Bezirksebene, sortet by income 
@@ -38,10 +38,12 @@ OT_Einkommen <- read.csv(file = './data/Einkommen_und_Preise_Nettoeinkommen_OT.c
 
 Ortsteildaten_gesamt <- merge(leipzig_Ortsteile, OT_NDVI )
 Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_EVI) 
-Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_Einkommen) #complete data set Ortsteilebene
+Ortsteildaten_gesamt <- merge(Ortsteildaten_gesamt, OT_Einkommen)
 Ortsteildaten_gesamt <- Ortsteildaten_gesamt[order(-Ortsteildaten_gesamt$Einkommen),]
 Ortsteildaten_gesamt$X <- 1:nrow(Ortsteildaten_gesamt)
 Ortsteildaten_gesamt #complete data set Ortsteilebene, sortet by income 
+
+
 
 #using leaflet and shiny to create interactive map
 
@@ -149,18 +151,27 @@ server <- function(input, output, session){
     
   })   
   
-
+#Tom : dieser observer ist für die checkboxen der zu zeigenden shapes, identifiziert über oben vergebene goupID (Ortsteile bzw Bezirke); er
+#      wechsle korrekt von ortsteile auf bezirke, andersherum geht es nicht, dafür muss man immer erst selber bezirke abhaken; denke es könnte mit dem if
+#      zusammenhängen, da gibt r studio auch eine warnung; das sind ja in r alles funktionen (bzw. vektoren) und funktional hab ich noch nie so richtig
+#      programmiert, komme da an grenzen
+#    
   observeEvent(input$map1_groups,{
     proxy <- leafletProxy("map1") 
+    
     if (input$map1_groups == 'Ortsteile') {
       proxy %>% hideGroup("Bezirke")
     }
     else if (input$map1_groups == 'Bezirke') {
       proxy %>% hideGroup("Ortsteile")
     }
+    
   })
   
-  
+
+#Tom : Problem zwei: wenn man den Haken bei der checkbox 'calculate NDVI for my area of residence' setzt und davor schon mal auf die map geklickt hatte, oder wenn man
+#      den haken setzt, klickt, haken wegmacht und dann wieder setzt (also erneut in diesen modus geht, nachdem man ihn verlassen hatte), dann hat er immer noch den letzten 
+#      click drin; er fängt also sofort an für den letztgesetzten click zu berechnen, obwohl man seit anwählen der checkbox noch nicht geklickt hat, sondern davor
   
   observeEvent(input$Umkreismodus, {
     map1_proxy = leafletProxy("map1") %>%
@@ -175,12 +186,13 @@ server <- function(input, output, session){
       map1_proxy = leafletProxy("map1") %>%
         hideGroup("Ortsteile") %>%
         hideGroup("Bezirke")
-
-      
+    
       click <- input$map1_click
       if(is.null(click))
         return()
       
+
+      showModal(modalDialog("calculating ndvi for latest click and radius...", footer=NULL))
       point <- data.frame(ID=1, X = c(click$lng), Y = c(click$lat))
       coordinates(point) <- c("X", "Y")
       
@@ -190,7 +202,7 @@ server <- function(input, output, session){
       circle <- spCircle(input$radiusslider, CRS("+proj=utm +zone=32 +datum=WGS84 +ellps=WGS84"), centerPoint = c(x=point[1,2], y=point[1,3]))
       print("Berechne NDVI...")
       circle_ndvi <- compute_vegetation_index(tif_ndvi, circle$spCircle)
-      #hier noch circle_ndvi auf NULL checken
+      removeModal()
       
       text<-paste("NDVI for selected radius: " , round(circle_ndvi, 3))
       
