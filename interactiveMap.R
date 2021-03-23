@@ -1,10 +1,19 @@
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(leaflet, leaflet.extras, rgdal, shiny, rsconnect, htmltools, RColorBrewer, dplyr, sampSurf)
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 rgdal_show_exportToProj4_warnings = "none"
 
-source("VegetationIndex.R")
+library(leaflet)
+library(leaflet.extras)
+library(rgdal)
+library(shiny)
+library(rsconnect)
+library(htmltools)
+library(RColorBrewer)
+library(dplyr)
+library(sampSurf)
+library(shinythemes)
+library(shinyBS)
+
+
+source("vegetationindex.R")
 tif_ndvi <- raster("data/NDVI.tif")
 
 
@@ -24,8 +33,6 @@ Bezirksdaten_gesamt <- merge(Bezirksdaten_gesamt, Bezirke_Einkommen)
 Bezirksdaten_gesamt <- Bezirksdaten_gesamt[order(-Bezirksdaten_gesamt$Einkommen),]
 Bezirksdaten_gesamt$X <- 1:nrow(Bezirksdaten_gesamt)
 Bezirksdaten_gesamt #complete data set Bezirksebene, sortet by income 
-
-
 
 
 #ortsteile:
@@ -64,30 +71,46 @@ labels2 <- paste("<p>", "Ortsteil: ", Ortsteildaten_gesamt$Name,  "</p>",
                 
                 sep= "")
 
-
 #and now the shiny application:
 
-ui <- fillPage(
-  leafletOutput("map1", height = "95%"),
-  
-  absolutePanel(top = 2, right = 2,
-    sliderInput(
-      "radiusslider", "Select radius (in meters)", min = 100, max = 5000, value = 1000, step = 100
-    )  ,
-    #actionButton("Umkreismodus", "Ortsteile zeigen"),
-    checkboxInput("legende", "show color scale", TRUE),
-    checkboxInput("umkreisBox", "calculate NDVI for my area of residence", FALSE)
-  
-  ),
-  titlePanel(windowTitle = "Green spaces Leipzig visualization", title = "Green spaces Leipzig visualization"),
-  
-    mainPanel(
-      
-      title = "Green spaces Leipzig"
-
-           
-    )
-    )
+ui <- fillPage(theme = shinytheme("united"),
+               
+               
+               
+               
+                 mainPanel(
+                   
+                   title = "Green spaces Leipzig", 
+                   
+                 ),
+        
+          
+                
+               leafletOutput("map1", height = "92%"),
+               
+               absolutePanel(top = 2, right = 2,
+                             checkboxInput("umkreisBox", "calculate NDVI for my area of residence", FALSE),
+                             sliderInput(
+                               "radiusslider", "Select radius (in meters)", min = 100, max = 3000, value = 1000, step = 100),
+                             bsTooltip("radiusslider", "check the box above to calculate NDVI with this radius", placement = "bottom", trigger = "hover",
+                                         options = NULL),
+                             bsTooltip("umkreisBox", "check this box and click on the map to calculate the NDVI for the clicked area", placement = "bottom", trigger = "hover",
+                                       options = NULL)
+                             
+                             
+                             
+               ),
+               
+               absolutePanel(bottom = 3, right = 5,
+               checkboxInput("legende", "show color scale", TRUE)
+               ),
+               bsTooltip("legende", "the NDVI values range from -1 to 1. Zero means no vegatation, a value close to one indicates the highest possible density of green leaves. Negative values indicate water.", placement = "top", trigger = "hover",
+                         options = NULL),
+              titlePanel(windowTitle = "Green spaces Leipzig visualization", title = "Green spaces Leipzig visualization")
+               
+               
+         
+)
 
 server <- function(input, output, session){
   output$map1 <- renderLeaflet({
@@ -125,14 +148,14 @@ server <- function(input, output, session){
       
       addLayersControl(
         position = "bottomleft",
-        overlayGroups = c("Bezirke", "Ortsteile"), 
+        baseGroups = c("Bezirke", "Ortsteile"), 
         options = layersControlOptions(collapsed = F, autoZIndex = F )
         
       ) %>%
       
       addSearchFeatures(
         targetGroups  = c("Ortsteile", "Bezirke"),
-        options = searchFeaturesOptions(zoom=12, openPopup=TRUE)) %>%
+        options = searchFeaturesOptions(zoom=13, openPopup=TRUE, hideMarkerOnCollapse = TRUE)) %>%
         hideGroup("Ortsteile") 
       
   })  
@@ -144,34 +167,17 @@ server <- function(input, output, session){
     proxy <- leafletProxy("map1")
     
       if (input$legende) {
-        proxy %>% addLegend(position = "bottomright", pal = binpal, values = Ortsteildaten_gesamt$NDVI, title = "NDVI color scale")
+        proxy %>% addLegend(position = "bottomright", pal = binpal, values = Ortsteildaten_gesamt$NDVI, title = "NDVI color scale") 
       }else{
         proxy %>% clearControls()
       }
     
   })   
-  
-#Tom : dieser observer ist für die checkboxen der zu zeigenden shapes, identifiziert über oben vergebene goupID (Ortsteile bzw Bezirke); er
-#      wechsle korrekt von ortsteile auf bezirke, andersherum geht es nicht, dafür muss man immer erst selber bezirke abhaken; denke es könnte mit dem if
-#      zusammenhängen, da gibt r studio auch eine warnung; das sind ja in r alles funktionen (bzw. vektoren) und funktional hab ich noch nie so richtig
-#      programmiert, komme da an grenzen
-#    
-  observeEvent(input$map1_groups,{
-    proxy <- leafletProxy("map1") 
-    
-    if (input$map1_groups == 'Ortsteile') {
-      proxy %>% hideGroup("Bezirke")
-    }
-    else if (input$map1_groups == 'Bezirke') {
-      proxy %>% hideGroup("Ortsteile")
-    }
-    
-  })
-  
+
 
 #Tom : Problem zwei: wenn man den Haken bei der checkbox 'calculate NDVI for my area of residence' setzt und davor schon mal auf die map geklickt hatte, oder wenn man
 #      den haken setzt, klickt, haken wegmacht und dann wieder setzt (also erneut in diesen modus geht, nachdem man ihn verlassen hatte), dann hat er immer noch den letzten 
-#      click drin; er fängt also sofort an für den letztgesetzten click zu berechnen, obwohl man seit anwählen der checkbox noch nicht geklickt hat, sondern davor
+#      click drin; er faengt also sofort an fuer den letztgesetzten click zu berechnen, obwohl man seit anwaehlen der checkbox noch nicht geklickt hat, sondern davor
   
   observeEvent(input$Umkreismodus, {
     map1_proxy = leafletProxy("map1") %>%
@@ -184,15 +190,16 @@ server <- function(input, output, session){
   observe({
     if(input$umkreisBox){
       map1_proxy = leafletProxy("map1") %>%
+        
         hideGroup("Ortsteile") %>%
         hideGroup("Bezirke")
-    
+      
       click <- input$map1_click
       if(is.null(click))
         return()
       
-
-      showModal(modalDialog("calculating ndvi for latest click and radius...", footer=NULL))
+      isolate(input$radiusslider)
+      showModal(modalDialog("Calculating NDVI for latest click and radius. This may take a minute or two...", footer=NULL))
       point <- data.frame(ID=1, X = c(click$lng), Y = c(click$lat))
       coordinates(point) <- c("X", "Y")
       
@@ -200,7 +207,6 @@ server <- function(input, output, session){
       point <- spTransform(point, CRS("+proj=utm +zone=32 +datum=WGS84 +ellps=WGS84")) %>% data.frame()
       
       circle <- spCircle(input$radiusslider, CRS("+proj=utm +zone=32 +datum=WGS84 +ellps=WGS84"), centerPoint = c(x=point[1,2], y=point[1,3]))
-      print("Berechne NDVI...")
       circle_ndvi <- compute_vegetation_index(tif_ndvi, circle$spCircle)
       removeModal()
       
